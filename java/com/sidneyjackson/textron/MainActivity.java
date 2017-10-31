@@ -244,7 +244,8 @@ public class MainActivity extends AppCompatActivity {
             try
             {
                 // TODO: Change Button Colors.
-                btSocket.getOutputStream().write("TF".toString().getBytes());
+                //btSocket.getOutputStream().write("TF".toString().getBytes()); // Formerly "TF"
+                btSocket.getOutputStream().write('0'); // Formerly "TF"
             }
             catch (IOException e)
             {
@@ -259,8 +260,9 @@ public class MainActivity extends AppCompatActivity {
         {
             try
             {
-                // TODO: Change Button Colors.
-                btSocket.getOutputStream().write("TO".toString().getBytes());
+                // TODO: Change Button Colors: Potential Bug/Error - Double Check sequential pairing.
+                //btSocket.getOutputStream().write("TO".toString().getBytes()); // Formerly "TO"
+                btSocket.getOutputStream().write('1'); // Formerly "TF"
             }
             catch (IOException e)
             {
