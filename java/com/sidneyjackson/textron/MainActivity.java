@@ -19,7 +19,9 @@ import android.widget.Toast;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -245,7 +247,27 @@ public class MainActivity extends AppCompatActivity {
             {
                 // TODO: Change Button Colors.
                 //btSocket.getOutputStream().write("TF".toString().getBytes()); // Formerly "TF"
-                btSocket.getOutputStream().write('0'); // Formerly "TF"
+                //btSocket.getOutputStream().write('0'); // Formerly "TF" // 11/9/17
+
+                String lock_message = "Lock";
+                String key = "aaaaaaaaaaaaaaaa";
+                String ival = "AAAAAAAAAAAAAAAA";
+
+                byte[] new_lock_message = null; // Seems sketch... Initialize with something eventually.
+                int nextByte = 0;
+
+                try {
+                    AES encryptionTool = new AES();
+                    new_lock_message = encryptionTool.encrypt(lock_message, key, ival.getBytes("UTF-8"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                InputStream inputStream = new ByteArrayInputStream(new_lock_message);
+
+                while ((nextByte=inputStream.read()) != -1) {
+                    btSocket.getOutputStream().write(nextByte);
+                }
             }
             catch (IOException e)
             {
@@ -262,7 +284,27 @@ public class MainActivity extends AppCompatActivity {
             {
                 // TODO: Change Button Colors: Potential Bug/Error - Double Check sequential pairing.
                 //btSocket.getOutputStream().write("TO".toString().getBytes()); // Formerly "TO"
-                btSocket.getOutputStream().write('1'); // Formerly "TF"
+                // btSocket.getOutputStream().write('1'); // Formerly "TF" 11/9/17
+
+                String unlock_message = "Unlock";
+                String key = "aaaaaaaaaaaaaaaa";
+                String ival = "AAAAAAAAAAAAAAAA";
+
+                byte[] new_lock_message = null; // Seems sketch... Initialize with something eventually.
+                int nextByte = 0;
+
+                try {
+                    AES encryptionTool = new AES();
+                    new_lock_message = encryptionTool.encrypt(unlock_message, key, ival.getBytes("UTF-8"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                InputStream inputStream = new ByteArrayInputStream(new_lock_message);
+
+                while ((nextByte=inputStream.read()) != -1) {
+                    btSocket.getOutputStream().write(nextByte);
+                }
             }
             catch (IOException e)
             {
