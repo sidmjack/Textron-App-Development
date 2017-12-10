@@ -22,6 +22,7 @@ import android.os.Bundle;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter; // Device Bluetooth Adapter
     public String currAddress = "";
     private HashMap<String, String> btHashmap = new HashMap<String, String>();
+    public boolean bt_connection_established = false;
 
     ListView deviceList; // List of Bluetooth Devices
     Button deviceListBtn; // Button to View List of Bluetooth Devices
@@ -45,7 +47,16 @@ public class MainActivity extends AppCompatActivity {
     Button btnLock; // Lock SmartBox Button
     Button btnDisconnect; // Disconnect from Bluetooth Device Button
 
-    private ConnectBT cbt;
+    // TODO: Check if this is a good place for this.
+    /*Runnable myRunner = new Runnable(){
+        public void run() {
+            new ConnectBT ().execute();
+        }
+    };*/
+
+    // TODO: Removed Temporarily.
+    //private ConnectBT cbt;
+
 
     private ProgressDialog progress;
     BluetoothSocket btSocket = null;
@@ -57,10 +68,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // TODO: Check whether this will actually work.
-        cbt = new ConnectBT(); // Not sure how this will work...
-        //cbt.execute();
-
+        // TODO: Removed Temporarily.
+        //cbt = new ConnectBT();
 
         /* Bluetooth Adapter Object that represents the device's own Bluetooth Adapter -
         needed for all Bluetooth Activities...*/
@@ -95,9 +104,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v)
             {
-                // TODO: Check whether this will actually work.
                 btnUnlock.setBackgroundColor(getResources().getColor(colorPrimaryDark));
                 btnLock.setBackgroundColor(getResources().getColor(colorPrimary));
+                // TODO: Add Check for Connected BT Device and Helpful Message
                 turnOnLed();      //Method to turn LED on (Simulating Unlock Feature)
             }
         });
@@ -106,9 +115,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v)
             {
-                // TODO: Check whether this will actually work.
                 btnUnlock.setBackgroundColor(getResources().getColor(colorPrimary));
                 btnLock.setBackgroundColor(getResources().getColor(colorPrimaryDark));
+                // TODO: Add Check for Connected BT Device and Helpful Message
                 turnOffLed();   //Method to turn LED off (Simulating Lock Feature)
             }
         });
@@ -120,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 ((TextView)findViewById(R.id.connected_bt_device_name_id)).setText("No BlueTooth Device Connected.");
                 Disconnect(); //close connection
+                bt_connection_established = false; // Cause app to crash
             }
         });
 
@@ -163,7 +173,12 @@ public class MainActivity extends AppCompatActivity {
             String address = info.substring(info.length() - 17);
             currAddress = address;
 
-            cbt.execute(); // TODO: Hopefully this works?
+            if (bt_connection_established == false) {
+                // TODO: Removed Temporarily and add Task Runner Here.
+                myRunner.run();
+                //cbt.execute(); // TODO: Hopefully this works?
+                bt_connection_established = true;
+            }
 
             // Update text field with the name of the Bluetooth Device connected to.
             ((TextView)findViewById(R.id.connected_bt_device_name_id)).setText("Connected to: " + btHashmap.get(currAddress));
@@ -178,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute()
         {
-            progress = ProgressDialog.show(MainActivity.this, "Connecting...", "Please wait!!!");  //show a progress dialog
+            progress = ProgressDialog.show(MainActivity.this, "Connecting...", "Please wait...");  //show a progress dialog
         }
 
         @Override
@@ -186,14 +201,15 @@ public class MainActivity extends AppCompatActivity {
         {
             try
             {
-                if (btSocket == null || !isBtConnected)
-                {
+                // TODO: Add these comments back in eventually.
+                //if (btSocket == null || !isBtConnected)
+                //{
                     mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
                     BluetoothDevice dispositivo = mBluetoothAdapter.getRemoteDevice(currAddress);//connects to the device's address and checks if it's available
                     btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
                     btSocket.connect();//start connection
-                }
+                //}
             }
             catch (IOException e)
             {
@@ -247,13 +263,17 @@ public class MainActivity extends AppCompatActivity {
             {
                 // TODO: Change Button Colors.
                 //btSocket.getOutputStream().write("TF".toString().getBytes()); // Formerly "TF"
+
                 //btSocket.getOutputStream().write('0'); // Formerly "TF" // 11/9/17
 
-                String lock_message = "Lock";
+                btSocket.getOutputStream().write("Lock_01010101010".getBytes(Charset.forName("UTF-8")));
+
+                /*String lock_message = "Lock_01010101010"; // 11/14/17
+                lock_message = lock_message.replaceAll("(\\r|\\n)", "");
                 String key = "aaaaaaaaaaaaaaaa";
                 String ival = "AAAAAAAAAAAAAAAA";
 
-                byte[] new_lock_message = null; // Seems sketch... Initialize with something eventually.
+                byte[] new_lock_message = new byte[16]; // Seems sketch... Initialize with something eventually.
                 int nextByte = 0;
 
                 try {
@@ -267,7 +287,8 @@ public class MainActivity extends AppCompatActivity {
 
                 while ((nextByte=inputStream.read()) != -1) {
                     btSocket.getOutputStream().write(nextByte);
-                }
+                    System.out.println(new Integer(nextByte));
+                }*/
             }
             catch (IOException e)
             {
@@ -284,14 +305,18 @@ public class MainActivity extends AppCompatActivity {
             {
                 // TODO: Change Button Colors: Potential Bug/Error - Double Check sequential pairing.
                 //btSocket.getOutputStream().write("TO".toString().getBytes()); // Formerly "TO"
-                // btSocket.getOutputStream().write('1'); // Formerly "TF" 11/9/17
+               // btSocket.getOutputStream().write('1'); // Formerly "TF" 11/9/17
 
-                String unlock_message = "Unlock";
+                btSocket.getOutputStream().write("Unlock_101010101".getBytes(Charset.forName("UTF-8")));
+
+                /*String unlock_message = "Unlock_101010101"; // 11/14/17
+                unlock_message = unlock_message.replaceAll("(\\r|\\n)", "");
+
                 String key = "aaaaaaaaaaaaaaaa";
                 String ival = "AAAAAAAAAAAAAAAA";
 
-                byte[] new_lock_message = null; // Seems sketch... Initialize with something eventually.
-                int nextByte = 0;
+                byte[] new_lock_message = new byte[16]; // Seems sketch... Initialize with something eventually.
+                int nextByte;
 
                 try {
                     AES encryptionTool = new AES();
@@ -304,7 +329,8 @@ public class MainActivity extends AppCompatActivity {
 
                 while ((nextByte=inputStream.read()) != -1) {
                     btSocket.getOutputStream().write(nextByte);
-                }
+                    System.out.println(new Integer(nextByte));
+                }*/
             }
             catch (IOException e)
             {
@@ -334,5 +360,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    Runnable myRunner = new Runnable(){
+        public void run() {
+            new ConnectBT ().execute();
+        }
+    };
 
 }
