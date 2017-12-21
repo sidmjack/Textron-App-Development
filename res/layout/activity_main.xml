@@ -21,7 +21,7 @@
             android:gravity="center"
             android:textSize="18dp"
             android:textStyle="bold"
-            android:text="TEXTRON SMARTBOX TEST APP" />
+            android:text="Textron VenusCapture Fly" />
 
         <TextView
             android:id="@+id/connected_bt_device_name_id"
@@ -59,6 +59,37 @@
             android:textColor="#fff"/>
     </LinearLayout>
 
+    <!--
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+        <Button
+            android:id="@+id/view_bt_scan_button_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:text="Discover Devices"
+            android:textColor="#fff"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="79dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ListView
+            android:id="@+id/listView_scanned_items"
+            android:layout_width="match_parent"
+            android:layout_height="60dp" />
+    </LinearLayout>
+    -->
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -77,23 +108,24 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="211dp"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
         android:padding="10dp">
 
         <ListView
-            android:id="@+id/listView"
+            android:id="@+id/listView_paired_items"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="191dp" />
     </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
-        android:paddingTop="35dp">
+        android:paddingTop="15dp">
 
         <Button
             android:id="@+id/disconnect_button_id"
@@ -101,7 +133,7 @@
             android:layout_height="wrap_content"
             android:background="@color/colorPrimary"
             android:text="Disconnect Paired Device"
-            android:textColor="#fff"/>
+            android:textColor="#fff" />
     </LinearLayout>
 
 </LinearLayout>
