@@ -354,7 +354,34 @@ public class MainActivity extends AppCompatActivity {
                 byte[] buffer = new byte[256];  // buffer store for the stream
                 int bytes; // bytes returned from read()
 
-                btSocket.getOutputStream().write("Disconnect010101".getBytes(Charset.forName("UTF-8")));
+
+                // New
+                String dis_message = "Disconnect010101"; // 11/14/17
+                dis_message = dis_message.replaceAll("(\\r|\\n)", "");
+
+                String key = "aaaaaaaaaaaaaaaa";
+                String ival = "AAAAAAAAAAAAAAAA";
+
+                byte[] new_dis_message = new byte[16];
+                int nextByte = 0;
+
+                try {
+                    AES encryptionTool = new AES();
+                    new_dis_message = encryptionTool.encrypt(dis_message, key, ival.getBytes("UTF-8"));
+                    System.out.println(encryptionTool.getCipher("Disconnect010101", key, ival.getBytes("UTF-8")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // New
+
+                //btSocket.getOutputStream().write("Disconnect010101".getBytes(Charset.forName("UTF-8")));
+
+                System.out.print("Last value output: ");
+                System.out.println(new_dis_message[15]);
+                btSocket.getOutputStream().write(new_dis_message);
+
+
                 bytes = new DataInputStream(btSocket.getInputStream()).read(buffer);
                 String readMessage = new String(buffer, 0, bytes);
                 if (readMessage.contains("BtDisconnectACKD")) {
@@ -383,10 +410,12 @@ public class MainActivity extends AppCompatActivity {
 
                 //btSocket.getOutputStream().write('0'); // Formerly "TF" // 11/9/17
 
-                btSocket.getOutputStream().write("Lock_01010101010".getBytes(Charset.forName("UTF-8")));
+                // TODO:  Recomment for FUNCTIONALITY:
+                //btSocket.getOutputStream().write("Lock_01010101010".getBytes(Charset.forName("UTF-8")));
 
-                /*String lock_message = "Lock_01010101010"; // 11/14/17
+                String lock_message = "Lock_01010101010"; // 11/14/17
                 lock_message = lock_message.replaceAll("(\\r|\\n)", "");
+
                 String key = "aaaaaaaaaaaaaaaa";
                 String ival = "AAAAAAAAAAAAAAAA";
 
@@ -396,11 +425,19 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     AES encryptionTool = new AES();
                     new_lock_message = encryptionTool.encrypt(lock_message, key, ival.getBytes("UTF-8"));
+                    System.out.println(encryptionTool.getCipher("Lock_01010101010", key, ival.getBytes("UTF-8")));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                InputStream inputStream = new ByteArrayInputStream(new_lock_message);
+                //String text = new String(new_lock_message, "UTF-8");
+
+                // New:
+                System.out.print("Last value output: ");
+                System.out.println(new_lock_message[15]);
+                btSocket.getOutputStream().write(new_lock_message);
+                //btSocket.getOutputStream().write(text.getBytes(Charset.forName("UTF-8")));
+                /*InputStream inputStream = new ByteArrayInputStream(new_lock_message);
 
                 while ((nextByte=inputStream.read()) != -1) {
                     btSocket.getOutputStream().write(nextByte);
@@ -427,11 +464,11 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: Change Button Colors: Potential Bug/Error - Double Check sequential pairing.
                 // TODO: Attempt using the end-line and trim() functions to get this to work.
                 //btSocket.getOutputStream().write("TO".toString().getBytes()); // Formerly "TO"
-               // btSocket.getOutputStream().write('1'); // Formerly "TF" 11/9/17
+                //btSocket.getOutputStream().write('1'); // Formerly "TF" 11/9/17
 
-                btSocket.getOutputStream().write("Unlock_101010101".getBytes(Charset.forName("UTF-8")));
+                //btSocket.getOutputStream().write("Unlock_101010101".getBytes(Charset.forName("UTF-8")));
 
-                /*String unlock_message = "Unlock_101010101"; // 11/14/17
+                String unlock_message = "Unlock_101010101"; // 11/14/17
                 unlock_message = unlock_message.replaceAll("(\\r|\\n)", "");
 
                 String key = "aaaaaaaaaaaaaaaa";
@@ -443,11 +480,19 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     AES encryptionTool = new AES();
                     new_lock_message = encryptionTool.encrypt(unlock_message, key, ival.getBytes("UTF-8"));
+                    System.out.println(encryptionTool.getCipher("Unlock_101010101", key, ival.getBytes("UTF-8")));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                InputStream inputStream = new ByteArrayInputStream(new_lock_message);
+                //String text = new String(new_lock_message, "UTF-8");
+
+                // New:
+                System.out.print("Last value output: ");
+                System.out.println(new_lock_message[15]);
+                btSocket.getOutputStream().write(new_lock_message);
+                //btSocket.getOutputStream().write(text.getBytes(Charset.forName("UTF-8")));
+                /*InputStream inputStream = new ByteArrayInputStream(new_lock_message);
 
                 while ((nextByte=inputStream.read()) != -1) {
                     btSocket.getOutputStream().write(nextByte);
