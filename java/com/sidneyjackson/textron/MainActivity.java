@@ -254,12 +254,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };*/
 
-    // //////////////////////////////////
-    // //////////////////////////////////
-    // DONT NEED TO FOCUS ON RIGHT NOW
-    // //////////////////////////////////
-    // //////////////////////////////////
-
     // Establishes Bluetooth Connection:
     private class ConnectBT extends AsyncTask<Void, Void, Void>  // UI thread
     {
@@ -303,8 +297,6 @@ public class MainActivity extends AppCompatActivity {
                 isBtConnected = false;
                 bt_connection_established = false;
                 ((TextView)findViewById(R.id.connected_bt_device_name_id)).setText("No BlueTooth Device Connected.");
-                //connectedAddress = "No Device Connected.";
-                //finish();
             }
             else
             {
@@ -327,76 +319,48 @@ public class MainActivity extends AppCompatActivity {
                         msg("Error");
                     }
                 }
-
-                /*else if (bt_Hashmap_discovered.get(currAddress) != null){
-                    ((TextView)findViewById(R.id.connected_bt_device_name_id)).setText("Connected to: " + bt_Hashmap_discovered.get(currAddress));
-                    //connectedAddress = bt_Hashmap_discovered.get(currAddress);
-                }*/
-
             }
             progress.dismiss();
         }
     }
 
-    // Displays Long Toasts:
+    // Displays Toasts:
     private void msg(String s)
     {
-        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_SHORT).show();
     }
 
-    // Disconnects Established BT Connection
-    private void Disconnect()
-    {
-        if (btSocket!=null) //If the btSocket is busy
-        {
-            try
-            {
-                byte[] buffer = new byte[256];  // buffer store for the stream
-                int bytes; // bytes returned from read()
-
-
-                // New
-                String dis_message = "Disconnect010101"; // 11/14/17
-                dis_message = dis_message.replaceAll("(\\r|\\n)", "");
-
-                String key = "aaaaaaaaaaaaaaaa";
-                String ival = "AAAAAAAAAAAAAAAA";
-
-                byte[] new_dis_message = new byte[16];
-                int nextByte = 0;
-
+    // Disconnect Version 2:
+    private void Disconnect() {
+        try {
+            if (btSocket.getInputStream() != null) {
                 try {
-                    AES encryptionTool = new AES();
-                    new_dis_message = encryptionTool.encrypt(dis_message, key, ival.getBytes("UTF-8"));
-                    System.out.println(encryptionTool.getCipher("Disconnect010101", key, ival.getBytes("UTF-8")));
+
+                    btSocket.getInputStream().close();
+                } catch (Exception e) {}
+            }
+
+            if (btSocket.getOutputStream() != null) {
+                try {
+                    btSocket.getOutputStream().close();
+                } catch (Exception e) {}
+            }
+
+            if (btSocket != null) {
+                try {
+                    btSocket.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
                 }
-
-                // New
-
-                //btSocket.getOutputStream().write("Disconnect010101".getBytes(Charset.forName("UTF-8")));
-
-                System.out.print("Last value output: ");
-                System.out.println(new_dis_message[15]);
-                btSocket.getOutputStream().write(new_dis_message);
-
-
-                bytes = new DataInputStream(btSocket.getInputStream()).read(buffer);
-                String readMessage = new String(buffer, 0, bytes);
-                if (readMessage.contains("BtDisconnectACKD")) {
-                    btSocket.close(); //close connection
-                    isBtConnected = false;
-                    bt_connection_established = true;
-                    //connectedAddress = "";
-                    msg("BlueTooth Disconnected");
-                }
+                btSocket = null;
             }
-            catch (IOException e)
-            {
-                msg("Error");
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        isBtConnected = false;
+        bt_connection_established = false;
+        ((TextView)findViewById(R.id.connected_bt_device_name_id)).setText("No Bluetooth Device Connected...");
+        msg("BlueTooth Disconnected");
+
     }
 
     private void turnOffLed() // Lock
@@ -405,15 +369,8 @@ public class MainActivity extends AppCompatActivity {
         {
             try
             {
-                // TODO: Change Button Colors.
-                //btSocket.getOutputStream().write("TF".toString().getBytes()); // Formerly "TF"
 
-                //btSocket.getOutputStream().write('0'); // Formerly "TF" // 11/9/17
-
-                // TODO:  Recomment for FUNCTIONALITY:
-                //btSocket.getOutputStream().write("Lock_01010101010".getBytes(Charset.forName("UTF-8")));
-
-                String lock_message = "Lock_01010101010"; // 11/14/17
+                String lock_message = "Lock_01010101010";
                 lock_message = lock_message.replaceAll("(\\r|\\n)", "");
 
                 String key = "aaaaaaaaaaaaaaaa";
@@ -430,19 +387,9 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                //String text = new String(new_lock_message, "UTF-8");
-
-                // New:
                 System.out.print("Last value output: ");
                 System.out.println(new_lock_message[15]);
                 btSocket.getOutputStream().write(new_lock_message);
-                //btSocket.getOutputStream().write(text.getBytes(Charset.forName("UTF-8")));
-                /*InputStream inputStream = new ByteArrayInputStream(new_lock_message);
-
-                while ((nextByte=inputStream.read()) != -1) {
-                    btSocket.getOutputStream().write(nextByte);
-                    System.out.println(new Integer(nextByte));
-                }*/
             }
             catch (IOException e)
             {
@@ -461,13 +408,6 @@ public class MainActivity extends AppCompatActivity {
         {
             try
             {
-                // TODO: Change Button Colors: Potential Bug/Error - Double Check sequential pairing.
-                // TODO: Attempt using the end-line and trim() functions to get this to work.
-                //btSocket.getOutputStream().write("TO".toString().getBytes()); // Formerly "TO"
-                //btSocket.getOutputStream().write('1'); // Formerly "TF" 11/9/17
-
-                //btSocket.getOutputStream().write("Unlock_101010101".getBytes(Charset.forName("UTF-8")));
-
                 String unlock_message = "Unlock_101010101"; // 11/14/17
                 unlock_message = unlock_message.replaceAll("(\\r|\\n)", "");
 
@@ -485,19 +425,9 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                //String text = new String(new_lock_message, "UTF-8");
-
-                // New:
                 System.out.print("Last value output: ");
                 System.out.println(new_lock_message[15]);
                 btSocket.getOutputStream().write(new_lock_message);
-                //btSocket.getOutputStream().write(text.getBytes(Charset.forName("UTF-8")));
-                /*InputStream inputStream = new ByteArrayInputStream(new_lock_message);
-
-                while ((nextByte=inputStream.read()) != -1) {
-                    btSocket.getOutputStream().write(nextByte);
-                    System.out.println(new Integer(nextByte));
-                }*/
             }
             catch (IOException e)
             {
