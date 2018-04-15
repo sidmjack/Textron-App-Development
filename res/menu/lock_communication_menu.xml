@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/blue_tooth_communication"
+        android:icon="@drawable/bt_icon"
+        android:title="@string/BT_Comm"/>
+    <item android:id="@+id/wifi_communication"
+        android:icon="@drawable/wifi_img"
+        android:title="@string/WiFi_Comm" />
+    <item android:id="@+id/sms_communication"
+        android:icon="@drawable/sms_img"
+        android:title="@string/SMS_Comm" />
+</menu>

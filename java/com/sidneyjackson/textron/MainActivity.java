@@ -8,9 +8,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.telephony.SmsManager;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,6 +29,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import android.telephony.SmsManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -38,6 +48,8 @@ import static com.sidneyjackson.textron.R.color.colorPrimaryDark;
 public class MainActivity extends AppCompatActivity {
 
     private final static int REQUEST_ENABLE_BT = 1;
+
+    // Bluetooth Variables:
 
     private Set<BluetoothDevice> pairedDevices; //Set of Bluetooth Devices
     private BluetoothAdapter mBluetoothAdapter; // Device Bluetooth Adapter
@@ -59,6 +71,14 @@ public class MainActivity extends AppCompatActivity {
     Button btnUnlock; // Unlock SmartBox Button
     Button btnLock; // Lock SmartBox Button
     Button btnDisconnect; // Disconnect from Bluetooth Device Button
+
+    // SMS Variables:
+
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
+    SmsManager smsManager = SmsManager.getDefault();
+
+    // Box and Button state
+    boolean isLocked = false;
 
     public final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -96,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         /* Initialize Bluetooth Device List and Buttons */
 
-        btnUnlock = (Button)findViewById(R.id.unlock_button_id);
+        //btnUnlock = (Button)findViewById(R.id.unlock_button_id);
         btnLock = (Button)findViewById(R.id.lock_button_id);
 
         deviceListPairedBtn = (Button)findViewById(R.id.view_bt_pair_button_id);
@@ -131,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
 
-        btnUnlock.setOnClickListener(new View.OnClickListener()
+        /*btnUnlock.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
@@ -140,17 +160,49 @@ public class MainActivity extends AppCompatActivity {
                 btnLock.setBackgroundColor(getResources().getColor(colorPrimary));
                 turnOnLed(); //Method to turn LED on (Simulating Unlock Feature)
             }
-        });
+        });*/
 
         btnLock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
-                btnUnlock.setBackgroundColor(getResources().getColor(colorPrimary));
-                btnLock.setBackgroundColor(getResources().getColor(colorPrimaryDark));
-                turnOffLed(); //Method to turn LED off (Simulating Lock Feature)
+                String phoneNumber = "3869565577";
+                String unlock_message = "Hello, Unlock!";
+                String lock_message = "Hello, Lock!";
+                if (isLocked) {
+                    btnLock.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                    btnLock.setTextColor(getResources().getColor(R.color.colorAccent));
+                    //sendSMS(phoneNumber, unlock_message);
+
+                    // This works, but doesn't exactly do what we want...
+                    /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + phoneNumber));
+                    intent.putExtra("sms_body", unlock_message);
+                    startActivity(intent);*/
+
+                    sendSMSMessage();
+
+                    turnOnLed(); //Method to turn LED off (Simulating Lock Feature)
+                    isLocked = false;
+                } else {
+                    btnLock.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                    btnLock.setTextColor(getResources().getColor(R.color.white));
+                    btnLock.setText("Unlock Venus Capture");
+                    //sendSMS(phoneNumber, lock_message);
+
+                    // This works, but doesn't exactly do what we want...
+                    /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + phoneNumber));
+                    intent.putExtra("sms_body", unlock_message);
+                    startActivity(intent);*/
+
+                    sendSMSMessage();
+
+                    turnOffLed(); //Method to turn LED off (Simulating Lock Feature)
+                    isLocked = true;
+                }
             }
         });
+
+        registerForContextMenu(btnLock); // New
 
         btnDisconnect.setOnClickListener(new View.OnClickListener()
         {
@@ -166,9 +218,71 @@ public class MainActivity extends AppCompatActivity {
         buttonEffect(btnDisconnect);
         buttonEffect(deviceListPairedBtn);
         //buttonEffect(deviceListScanBtn);
+
+    }
+    // This is where Context Menu's are "inflated" in the main activity.
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        //MenuInflater inflater = getMenuInflater();
+        if (v.getId() == R.id.lock_button_id) {
+            menu.setHeaderTitle("Venus Comm Menu");
+            getMenuInflater().inflate(R.menu.lock_communication_menu, menu);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        // Handle item selection
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+        switch (item.getItemId()) {
+            case R.id.blue_tooth_communication:
+                // BT: Connect, Scan, Disconnect...
+                // Turn On/Off appropriate methods of communication.
+                msg("Switching to Bluetooth Connection");
+                return true;
+            case R.id.wifi_communication:
+                // Wifi: Connect, Scan, Disconnect...
+                // Turn On/Off appropriate methods of communication.
+                msg("Switching to WiFi Connection");
+                return true;
+            case R.id.sms_communication:
+                // SMS: Connect, Scan, Disconnect Bluetooth...
+                // Turn On/Off appropriate methods of communication.
+                msg("Switching to SMS Connection");
+                return true;
+            default:
+                msg("No changes made for communication method.");
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     // Methods:
+
+    protected void sendSMSMessage() {
+
+        String phoneNo = "3869565577";
+        String message = "Open Sesame!";
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.SEND_SMS)) {
+
+
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "Permission (already) Granted!", Toast.LENGTH_SHORT).show();
+            // Send the message
+            smsManager.sendTextMessage(phoneNo, null, message, null, null);
+        }
+    }
+
+    private void sendSMS(String phoneNumber, String message) {
+        smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+    }
 
     private void pairedDevicesList()
     {
@@ -273,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: Add these comments back in eventually.
                 if (btSocket == null || !isBtConnected)
                 {
-                    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
+                    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bt_icon device
                     BluetoothDevice dispositivo = mBluetoothAdapter.getRemoteDevice(currAddress);//connects to the device's address and checks if it's available
                     btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
