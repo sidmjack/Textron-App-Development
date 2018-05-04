@@ -11,11 +11,13 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -77,8 +79,16 @@ public class MainActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
     SmsManager smsManager = SmsManager.getDefault();
 
-    // Box and Button state
-    boolean isLocked = false;
+    // Wifi Variable:
+    TcpClient mTcpClient;
+
+    // Box and Button State
+    boolean isLocked = true;
+
+    // Message Type Flags:
+    boolean btActivated = true;
+    boolean smsActivated = false;
+    boolean wifiActivated = false;
 
     public final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -166,12 +176,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v)
             {
-                String phoneNumber = "3869565577";
-                String unlock_message = "Hello, Unlock!";
-                String lock_message = "Hello, Lock!";
                 if (isLocked) {
                     btnLock.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                     btnLock.setTextColor(getResources().getColor(R.color.colorAccent));
+                    btnLock.setTypeface(Typeface.DEFAULT_BOLD);
+                    btnLock.setText("Lock Venus Capture");
                     //sendSMS(phoneNumber, unlock_message);
 
                     // This works, but doesn't exactly do what we want...
@@ -179,13 +188,36 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("sms_body", unlock_message);
                     startActivity(intent);*/
 
-                    sendSMSMessage();
+                    // SMS:
+                    if (smsActivated == true) {
+                        sendSMSMessage(isLocked );
+                    }
 
-                    turnOnLed(); //Method to turn LED off (Simulating Lock Feature)
+                    // Wifi Webpage:
+                    if (wifiActivated == true) {
+                        openWifiWebpage();
+                    }
+
+                    // Wifi Stuff:
+                   /* new ConnectTask().execute("");
+                    if (mTcpClient != null) {
+                        mTcpClient.sendMessage("1");
+                        msg("Wifi Message Sent!");
+                    }
+                    if (mTcpClient != null) {
+                        mTcpClient.stopClient();
+                    }*/
+
+
+                    if (btActivated == true) {
+                        turnOnLed(); //Method to turn LED off (Simulating Lock Feature)
+                    }
+
                     isLocked = false;
                 } else {
                     btnLock.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                     btnLock.setTextColor(getResources().getColor(R.color.white));
+                    btnLock.setTypeface(Typeface.DEFAULT);
                     btnLock.setText("Unlock Venus Capture");
                     //sendSMS(phoneNumber, lock_message);
 
@@ -194,9 +226,29 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("sms_body", unlock_message);
                     startActivity(intent);*/
 
-                    sendSMSMessage();
+                    // SMS:
+                    if (smsActivated == true) {
+                        sendSMSMessage(isLocked);
+                    }
 
-                    turnOffLed(); //Method to turn LED off (Simulating Lock Feature)
+                    // Wifi Webpage:
+                    if (wifiActivated == true) {
+                        openWifiWebpage();
+                    }
+
+                    // Wifi Stuff:
+                   /* new ConnectTask().execute("");
+                    if (mTcpClient != null) {
+                        mTcpClient.sendMessage("0");
+                        msg("Wifi Message Sent!");
+                    }
+                    if (mTcpClient != null) {
+                        mTcpClient.stopClient();
+                    }*/
+
+                    if (btActivated == true) {
+                        turnOffLed(); //Method to turn LED off (Simulating Lock Feature)
+                    }
                     isLocked = true;
                 }
             }
@@ -241,16 +293,25 @@ public class MainActivity extends AppCompatActivity {
             case R.id.blue_tooth_communication:
                 // BT: Connect, Scan, Disconnect...
                 // Turn On/Off appropriate methods of communication.
+                btActivated = true;
+                smsActivated = false;
+                wifiActivated = false;
                 msg("Switching to Bluetooth Connection");
                 return true;
             case R.id.wifi_communication:
                 // Wifi: Connect, Scan, Disconnect...
                 // Turn On/Off appropriate methods of communication.
+                btActivated = false;
+                smsActivated = false;
+                wifiActivated = true;
                 msg("Switching to WiFi Connection");
                 return true;
             case R.id.sms_communication:
                 // SMS: Connect, Scan, Disconnect Bluetooth...
                 // Turn On/Off appropriate methods of communication.
+                btActivated = false;
+                smsActivated = true;
+                wifiActivated = false;
                 msg("Switching to SMS Connection");
                 return true;
             default:
@@ -261,10 +322,46 @@ public class MainActivity extends AppCompatActivity {
 
     // Methods:
 
-    protected void sendSMSMessage() {
+    protected void openWifiWebpage() {
+        Uri uri = Uri.parse("http://192.168.1.75"); // missing 'http://' will cause crashed
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
+    }
 
-        String phoneNo = "3869565577";
-        String message = "Open Sesame!";
+    protected void sendSMSMessage(boolean boxIsLocked) { // Need to encrypt this... (No need to give user visual)
+
+        //String phoneNo = "3869565577"; // Need to update this to box phoneNumber
+        //String phoneNo = "4434534989";
+        String phoneNo = "443-739-3024";
+        //String message = "Open Sesame!";
+
+        String lock_message;
+        String lock_message_enc;
+
+        if (boxIsLocked) {
+            //lock_message_enc = "Unlock_101010101";
+            //lock_message = "@lighton#";
+            lock_message = "@Unlock_101010101#";
+        } else {
+            //lock_message_enc = "Lock_01010101010";
+            //lock_message = "@lightoff#";
+            lock_message = "@Lock_01010101010#";
+        }
+        lock_message_enc = lock_message_enc.replaceAll("(\\r|\\n)", "");
+
+        String key = "aaaaaaaaaaaaaaaa";
+        String ival = "AAAAAAAAAAAAAAAA";
+
+        byte[] new_lock_message = new byte[16]; // Seems sketch... Initialize with something eventually.
+        int nextByte = 0;
+
+        try {
+            AES encryptionTool = new AES();
+            new_lock_message = encryptionTool.encrypt(lock_message_enc, key, ival.getBytes("UTF-8"));
+            System.out.println(encryptionTool.getCipher("Lock_01010101010", key, ival.getBytes("UTF-8")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.SEND_SMS)) {
@@ -276,7 +373,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(MainActivity.this, "Permission (already) Granted!", Toast.LENGTH_SHORT).show();
             // Send the message
-            smsManager.sendTextMessage(phoneNo, null, message, null, null);
+            smsManager.sendTextMessage(phoneNo, null, lock_message, null, null);
+            String enc_message = "@" + (new_lock_message).toString() + "#";
+            smsManager.sendTextMessage(phoneNo, null, enc_message, null, null);
         }
     }
 
@@ -435,6 +534,37 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             progress.dismiss();
+        }
+    }
+
+    // Wifi Stuff:
+
+    public class ConnectTask extends AsyncTask<String, String, TcpClient> {
+
+        @Override
+        protected TcpClient doInBackground(String... message) {
+
+            //we create a TCPClient object
+            mTcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
+                @Override
+                //here the messageReceived method is implemented
+                public void messageReceived(String message) {
+                    //this method calls the onProgressUpdate
+                    publishProgress(message);
+                }
+            });
+            mTcpClient.run();
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            //response received from server
+            Log.d("test", "response " + values[0]);
+            //process server response here....
+
         }
     }
 
