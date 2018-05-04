@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,6 +33,23 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+// AWS Wanted this here
+/*import com.amazonaws.mobile.auth.ui.SignInUI;
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.AWSStartupHandler;
+import com.amazonaws.mobile.client.AWSStartupResult;*/
+
+//import com.amazonaws.mobile.auth.facebook.FacebookButton;
+//import com.amazonaws.mobile.auth.google.GoogleButton;
+
+import android.graphics.Color;
+import com.amazonaws.mobile.auth.ui.AuthUIConfiguration;
+import com.amazonaws.mobile.auth.ui.SignInUI;
+
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.AWSStartupHandler;
+import com.amazonaws.mobile.client.AWSStartupResult;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -63,12 +81,54 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+
+    /** On Create Starts Here... */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // AWS Stuff:
+        /*AWSMobileClient.getInstance().initialize(this, new AWSStartupHandler() {
+            @Override
+            public void onComplete(AWSStartupResult awsStartupResult) {
+                Log.d("LoginActivity", "AWSMobileClient is instantiated and you are connected to AWS!");
+            }
+        }).execute();*/
+
+        AWSMobileClient.getInstance().initialize(this, new AWSStartupHandler() {
+            @Override
+            public void onComplete(AWSStartupResult awsStartupResult) {
+                SignInUI signin = (SignInUI) AWSMobileClient.getInstance().getClient(LoginActivity.this, SignInUI.class);
+                signin.login(LoginActivity.this, MainActivity.class).execute();
+            }
+        }).execute();
+
+        AWSMobileClient.getInstance().initialize(this, new AWSStartupHandler() {
+            @Override
+            public void onComplete(final AWSStartupResult awsStartupResult) {
+                AuthUIConfiguration config =
+                        new AuthUIConfiguration.Builder()
+                                .userPools(true)  // true? show the Email and Password UI
+                                //.signInButton(FacebookButton.class) // Show Facebook button
+                                //.signInButton(GoogleButton.class) // Show Google button
+                                .logoResId(R.drawable.login_pic) // Change the logo
+                                .backgroundColor(getResources().getColor(R.color.backgroundColor)) // Change the backgroundColor
+                                .isBackgroundColorFullScreen(true) // Full screen backgroundColor the backgroundColor full screenff
+                                .fontFamily("sans-serif-light") // Apply sans-serif-light as the global font
+                                .canCancel(true)
+                                .build();
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+                //SignInUI signinUI = (SignInUI) AWSMobileClient.getInstance().getClient(LoginActivity.this, SignInUI.class);
+                //signinUI.login(LoginActivity.this, MainActivity.class).authUIConfiguration(config).execute();
+            }
+        }).execute();
+
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        /*mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -92,8 +152,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
 
         mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
+        mProgressView = findViewById(R.id.login_progress);*/
     }
+
+    /** On Create Ends Here... */
 
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {

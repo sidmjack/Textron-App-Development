@@ -23,9 +23,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -105,10 +109,20 @@ public class MainActivity extends AppCompatActivity {
     private boolean isBtConnected = false;
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); //given
 
+    //Initialize Application Context
+    private static Context appContext;
+
+    //Get Application Context (for use in external functions)
+    public static Context getContext() {
+        return appContext;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        appContext = this;
 
         /* Bluetooth Adapter Object that represents the device's own Bluetooth Adapter - needed for all Bluetooth Activities...*/
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -323,8 +337,11 @@ public class MainActivity extends AppCompatActivity {
     // Methods:
 
     protected void openWifiWebpage() {
-        Uri uri = Uri.parse("http://192.168.1.75"); // missing 'http://' will cause crashed
+       /* Uri uri = Uri.parse("http://192.168.1.75"); // missing 'http://' will cause crashed
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);*/
+
+        Intent intent = new Intent(this, WebActivity.class);
         startActivity(intent);
     }
 
@@ -339,11 +356,11 @@ public class MainActivity extends AppCompatActivity {
         String lock_message_enc;
 
         if (boxIsLocked) {
-            //lock_message_enc = "Unlock_101010101";
+            lock_message_enc = "Unlock_101010101";
             //lock_message = "@lighton#";
             lock_message = "@Unlock_101010101#";
         } else {
-            //lock_message_enc = "Lock_01010101010";
+            lock_message_enc = "Lock_01010101010";
             //lock_message = "@lightoff#";
             lock_message = "@Lock_01010101010#";
         }
